@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trisha's Inbox — AI-Powered Executive Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --purple:#7C6FEE;
+    --purple-deep:#5B4FD9;
+    --purple-light:#EFECFE;
+    --peach:#FFD9C4;
+    --peach-deep:#F2924B;
+    --pink:#F7A8C4;
+    --pink-deep:#E85D8A;
+    --green:#7FD8A6;
+    --green-deep:#2FAE68;
+    --blue:#8EC5FF;
+    --blue-deep:#3E8EF7;
+    --bg:#F7F6FB;
+    --card:#FFFFFF;
+    --ink:#221F36;
+    --ink-soft:#5B5876;
+    --ink-faint:#9491AC;
+    --border:#ECEAF6;
+    --shadow: 0 8px 24px rgba(85, 73, 158, 0.08);
+    --shadow-sm: 0 2px 8px rgba(85, 73, 158, 0.06);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,h4{font-family:'Plus Jakarta Sans', sans-serif; margin:0;}
+  button{font-family:inherit; cursor:pointer;}
+  a{color:inherit;}
+  ::selection{background:var(--purple-light);}
+
+  /* ---------- Layout ---------- */
+  .app{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:250px;
+    background:var(--card);
+    border-right:1px solid var(--border);
+    padding:22px 16px;
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0; left:0; bottom:0;
+    z-index:40;
+    transition:transform .25s ease;
+  }
+  .brand{display:flex; align-items:center; gap:11px; padding:4px 8px 22px 8px;}
+  .brand-mark{
+    width:38px; height:38px; border-radius:11px;
+    background:linear-gradient(135deg, var(--purple), var(--pink-deep));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:17px; flex-shrink:0;
+  }
+  .brand-text h1{font-size:15.5px; font-weight:700; letter-spacing:-0.2px;}
+  .brand-text p{margin:1px 0 0; font-size:11.5px; color:var(--ink-faint);}
+
+  .nav-group{display:flex; flex-direction:column; gap:2px; flex:1; overflow-y:auto;}
+  .nav-item{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:10px 12px; border-radius:11px;
+    color:var(--ink-soft); font-size:13.8px; font-weight:600;
+    border:none; background:transparent; text-align:left; width:100%;
+    transition: background .15s ease, color .15s ease;
+  }
+  .nav-item .left{display:flex; align-items:center; gap:11px;}
+  .nav-item svg{width:18px; height:18px; flex-shrink:0; opacity:.85;}
+  .nav-item:hover{background:var(--purple-light); color:var(--purple-deep);}
+  .nav-item.active{background:var(--purple); color:#fff; box-shadow:var(--shadow-sm);}
+  .nav-item.active svg{opacity:1;}
+  .nav-badge{
+    font-size:11px; font-weight:700; background:rgba(124,111,238,.14);
+    color:var(--purple-deep); padding:1px 8px; border-radius:20px;
+  }
+  .nav-item.active .nav-badge{background:rgba(255,255,255,.25); color:#fff;}
+  .nav-divider{height:1px; background:var(--border); margin:12px 4px;}
+
+  .sidebar-footer{
+    display:flex; align-items:center; gap:10px; padding:12px 8px 4px;
+    border-top:1px solid var(--border); margin-top:10px;
+  }
+  .avatar{
+    width:36px; height:36px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,var(--pink),var(--peach));
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; color:#7A3B57; font-size:13px; position:relative;
+  }
+  .avatar::after{
+    content:''; position:absolute; width:9px; height:9px; border-radius:50%;
+    background:var(--green-deep); border:2px solid var(--card); bottom:-1px; right:-1px;
+  }
+  .sidebar-footer .who p{margin:0; font-size:12.5px; font-weight:700;}
+  .sidebar-footer .who span{font-size:11px; color:var(--ink-faint);}
+
+  .main{
+    margin-left:250px;
+    flex:1;
+    min-width:0;
+    padding:26px 30px 60px;
+  }
+
+  .menu-toggle{
+    display:none; align-items:center; justify-content:center;
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--border);
+    background:var(--card); margin-right:10px;
+  }
+  .menu-toggle svg{width:18px; height:18px;}
+
+  .topbar{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:20px; margin-bottom:22px; flex-wrap:wrap;
+  }
+  .greeting-row{display:flex; align-items:flex-start;}
+  .greeting h2{font-size:26px; font-weight:800; letter-spacing:-0.4px;}
+  .greeting p{margin:4px 0 0; color:var(--ink-soft); font-size:13.8px;}
+  .topbar-right{display:flex; align-items:center; gap:22px; padding-top:4px;}
+  .topbar-meta{text-align:right;}
+  .topbar-meta .date{font-weight:700; font-size:13.5px;}
+  .topbar-meta .time{font-size:13.5px; color:var(--ink-soft);}
+  .weather{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); text-align:right;}
+  .weather .temp{font-weight:700; color:var(--ink); font-size:14px;}
+
+  /* ---------- Cards / grid ---------- */
+  .grid-main{display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start;}
+  .stack{display:flex; flex-direction:column; gap:20px; min-width:0;}
+
+  .card{
+    background:var(--card); border-radius:var(--radius);
+    box-shadow:var(--shadow-sm); border:1px solid var(--border);
+    padding:20px;
+  }
+  .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px;}
+  .card-head h3{font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px;}
+  .card-head p{margin:2px 0 0; font-size:12px; color:var(--ink-faint); font-weight:500;}
+  .card-head .link{font-size:12.5px; font-weight:700; color:var(--purple-deep); background:none; border:none; display:flex; align-items:center; gap:4px;}
+
+  .summary-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px;}
+  .summary-card{
+    border-radius:var(--radius); padding:16px 16px 14px; border:1px solid var(--border);
+    box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+  }
+  .summary-card .icon{
+    width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .summary-card .icon svg{width:17px; height:17px;}
+  .summary-card .label{font-size:12.5px; color:var(--ink-soft); font-weight:600; margin-bottom:2px;}
+  .summary-card .value{font-size:26px; font-weight:800; letter-spacing:-0.5px;}
+  .summary-card .delta{font-size:11.5px; font-weight:700; margin-top:6px; display:flex; align-items:center; gap:3px;}
+  .s-purple{background:#F1EEFF;} .s-purple .icon{background:var(--purple); color:#fff;}
+  .s-pink{background:#FFEEF3;} .s-pink .icon{background:var(--pink-deep); color:#fff;}
+  .s-peach{background:#FFF3E9;} .s-peach .icon{background:var(--peach-deep); color:#fff;}
+  .s-green{background:#EBFAF1;} .s-green .icon{background:var(--green-deep); color:#fff;}
+  .s-blue{background:#EDF5FF;} .s-blue .icon{background:var(--blue-deep); color:#fff;}
+  .delta.up{color:var(--green-deep);} .delta.down{color:var(--pink-deep);}
+
+  /* Tabs */
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .tab{
+    padding:7px 14px; border-radius:20px; font-size:12.5px; font-weight:700;
+    border:1px solid var(--border); background:var(--bg); color:var(--ink-soft);
+  }
+  .tab.active{background:var(--purple); border-color:var(--purple); color:#fff;}
+
+  .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .search-box{
+    display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border);
+    border-radius:10px; padding:8px 12px; min-width:180px; flex:1;
+  }
+  .search-box svg{width:15px; height:15px; color:var(--ink-faint); flex-shrink:0;}
+  .search-box input{border:none; background:transparent; outline:none; font-size:13px; width:100%; font-family:inherit; color:var(--ink);}
+  .filter-btn{
+    width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--bg);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .filter-btn svg{width:15px; height:15px; color:var(--ink-soft);}
+
+  /* Table */
+  .table-wrap{overflow-x:auto; margin-top:14px;}
+  table{width:100%; border-collapse:collapse; min-width:640px;}
+  thead th{
+    text-align:left; font-size:11.5px; text-transform:none; color:var(--ink-faint);
+    font-weight:700; padding:8px 10px; border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:12px 10px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle;}
+  tbody tr:hover{background:#FAF9FF;}
+  tbody tr:last-child td{border-bottom:none;}
+  .from-cell{font-weight:600;}
+  .subj-cell .subj{font-weight:700; margin-bottom:2px;}
+  .subj-cell .preview{color:var(--ink-faint); font-size:12px; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .score-pill{
+    display:inline-flex; align-items:center; justify-content:center; min-width:34px;
+    padding:4px 8px; border-radius:20px; font-size:12px; font-weight:800; color:#fff;
+  }
+  .score-hi{background:var(--pink-deep);}
+  .score-mid{background:var(--peach-deep);}
+  .score-lo{background:#B9B4E0;}
+  .label-chip{
+    display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; margin:1px 3px 1px 0;
+    white-space:nowrap;
+  }
+  .view-btn{
+    padding:7px 14px; border-radius:9px; border:1px solid var(--border); background:var(--bg);
+    font-size:12.5px; font-weight:700; color:var(--ink);
+  }
+  .view-btn:hover{background:var(--purple); color:#fff; border-color:var(--purple);}
+  .more-btn{
+    width:30px; height:30px; border-radius:8px; border:none; background:transparent; color:var(--ink-faint); font-size:16px; font-weight:800;
+  }
+  .more-btn:hover{background:var(--border);}
+  .row-actions{display:flex; align-items:center; gap:6px;}
+
+  /* Automation panel */
+  .status-row{display:flex; align-items:center; gap:8px; margin-bottom:14px;}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--green-deep); box-shadow:0 0 0 4px rgba(47,174,104,.16);}
+  .dot.off{background:var(--ink-faint); box-shadow:0 0 0 4px rgba(148,145,172,.16);}
+  .live-badge{font-size:11px; font-weight:800; color:var(--green-deep); background:#E6F9EE; padding:2px 9px; border-radius:20px; margin-left:auto;}
+  .kv{display:flex; justify-content:space-between; font-size:13px; padding:7px 0; border-bottom:1px dashed var(--border);}
+  .kv:last-of-type{border-bottom:none;}
+  .kv span:first-child{color:var(--ink-soft);}
+  .kv span:last-child{font-weight:700;}
+  .progress-bar{height:7px; border-radius:20px; background:var(--border); overflow:hidden; margin-top:4px;}
+  .progress-fill{height:100%; background:linear-gradient(90deg,var(--purple),var(--pink-deep)); border-radius:20px; transition:width .5s ease;}
+  .run-btn{
+    width:100%; margin-top:14px; padding:12px; border:none; border-radius:12px;
+    background:linear-gradient(135deg,var(--purple),var(--purple-deep)); color:#fff;
+    font-weight:700; font-size:14px; box-shadow:var(--shadow-sm); display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .run-btn:disabled{opacity:.7; cursor:progress;}
+  .run-btn:hover:not(:disabled){filter:brightness(1.06);}
+  .settings-icon-btn{
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--border); background:var(--bg);
+    display:flex; align-items:center; justify-content:center; margin-top:14px;
+  }
+  .run-row{display:flex; gap:8px;}
+  .run-row .run-btn{margin-top:14px;}
+
+  /* Quick actions */
+  .qa-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .qa-btn{
+    display:flex; align-items:center; gap:9px; padding:12px; border-radius:12px;
+    border:1px solid var(--border); background:var(--bg); font-size:12.8px; font-weight:700; color:var(--ink);
+    text-align:left;
+  }
+  .qa-btn svg{width:16px; height:16px; color:var(--purple-deep); flex-shrink:0;}
+  .qa-btn:hover{background:var(--purple-light); border-color:var(--purple);}
+
+  /* Meetings / activity / drafts lists */
+  .list-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
+  .list-item:last-child{border-bottom:none;}
+  .list-left{display:flex; align-items:center; gap:11px; min-width:0;}
+  .list-dot{width:8px; height:8px; border-radius:50%; background:var(--purple); flex-shrink:0;}
+  .list-text p{margin:0; font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .list-text span{font-size:11.5px; color:var(--ink-faint);}
+  .pill-btn{
+    padding:5px 12px; border-radius:20px; font-size:11.5px; font-weight:700; border:none;
+    background:var(--purple-light); color:var(--purple-deep); flex-shrink:0;
+  }
+  .activity-time{font-size:11px; color:var(--ink-faint); width:52px; flex-shrink:0;}
+  .activity-text{font-size:12.8px; font-weight:600;}
+  .draft-icon{
+    width:34px; height:34px; border-radius:9px; background:var(--purple-light); color:var(--purple-deep);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .draft-icon svg{width:16px; height:16px;}
+
+  /* Checklist */
+  .check-item{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:13.3px; font-weight:600;}
+  .check-item:last-child{border-bottom:none;}
+  .checkbox{
+    width:19px; height:19px; border-radius:6px; border:2px solid var(--border); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; background:var(--bg);
+  }
+  .checkbox svg{width:12px; height:12px; color:#fff; display:none;}
+  .checkbox.done{background:var(--green-deep); border-color:var(--green-deep);}
+  .checkbox.done svg{display:block;}
+  .check-item.done span{text-decoration:line-through; color:var(--ink-faint);}
+  .focus-note{
+    margin-top:14px; background:linear-gradient(135deg,#FFF0F5,#FFF7ED); border-radius:12px; padding:14px;
+    font-family:'Plus Jakarta Sans',cursive; font-style:italic; color:#B4527C; font-size:13.5px; text-align:right;
+  }
+
+  /* Bottom analytics row on dashboard */
+  .bottom-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-top:20px;}
+  .legend-row{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; padding:4px 0;}
+  .legend-left{display:flex; align-items:center; gap:8px;}
+  .legend-dot{width:9px; height:9px; border-radius:50%;}
+  .legend-pct{color:var(--ink-faint); font-weight:700;}
+  .donut-wrap{display:flex; align-items:center; gap:16px;}
+  .donut-wrap canvas{max-width:120px; max-height:120px;}
+  .center-total{position:relative;}
+
+  /* Analytics view */
+  .analytics-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;}
+  .kpi-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:var(--shadow-sm);}
+  .kpi-card .label{font-size:12px; color:var(--ink-faint); font-weight:700;}
+  .kpi-card .value{font-size:22px; font-weight:800; margin-top:4px;}
+
+  /* Settings view */
+  .settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .setting-row{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--bg);}
+  .setting-row .name{font-size:13px; font-weight:700;}
+  .setting-row .desc{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+  .toggle{width:38px; height:22px; border-radius:20px; background:var(--border); position:relative; flex-shrink:0;}
+  .toggle.on{background:var(--green-deep);}
+  .toggle::after{content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:#fff; top:3px; left:3px; transition:left .15s ease;}
+  .toggle.on::after{left:19px;}
+  .setting-val{font-size:13px; font-weight:800; color:var(--purple-deep);}
+
+  .empty-state{text-align:center; padding:50px 20px; color:var(--ink-faint);}
+  .empty-state svg{width:46px; height:46px; margin-bottom:12px; opacity:.5;}
+  .empty-state p{font-size:13.5px; font-weight:600;}
+
+  .page-title{margin-bottom:18px;}
+  .page-title h2{font-size:22px; font-weight:800;}
+  .page-title p{margin:4px 0 0; color:var(--ink-soft); font-size:13.5px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(34,31,54,.42); display:none;
+    align-items:center; justify-content:center; z-index:100; padding:20px; backdrop-filter:blur(2px);
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--card); border-radius:20px; width:100%; max-width:560px; max-height:88vh; overflow-y:auto;
+    box-shadow:0 30px 60px rgba(34,31,54,.25); animation:pop .18s ease;
+  }
+  @keyframes pop{from{transform:translateY(10px) scale(.98); opacity:0;} to{transform:translateY(0) scale(1); opacity:1;}}
+  .modal-head{display:flex; align-items:flex-start; justify-content:space-between; padding:20px 22px 14px; border-bottom:1px solid var(--border);}
+  .modal-head h3{font-size:17px; font-weight:800; margin-bottom:4px;}
+  .modal-head .from{font-size:12.8px; color:var(--ink-soft);}
+  .modal-close{width:30px; height:30px; border-radius:8px; border:none; background:var(--bg); color:var(--ink-soft); flex-shrink:0;}
+  .modal-body{padding:18px 22px;}
+  .modal-body .field{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--border); font-size:12.8px;}
+  .modal-body .field span:first-child{color:var(--ink-faint); font-weight:600;}
+  .modal-body .field span:last-child{font-weight:700; text-align:right;}
+  .modal-preview{background:var(--bg); border-radius:12px; padding:14px; margin-top:14px; font-size:13px; color:var(--ink-soft); line-height:1.6;}
+  .modal-footer{display:flex; gap:10px; padding:16px 22px 22px;}
+  .modal-footer button{flex:1; padding:11px; border-radius:11px; font-weight:700; font-size:13px; border:1px solid var(--border); background:var(--bg);}
+  .modal-footer .primary{background:var(--purple); color:#fff; border-color:var(--purple);}
+
+  /* Toasts */
+  .toast-wrap{position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:10px; z-index:200;}
+  .toast{
+    background:var(--ink); color:#fff; padding:13px 18px; border-radius:12px; font-size:13px; font-weight:600;
+    display:flex; align-items:center; gap:10px; box-shadow:0 12px 30px rgba(0,0,0,.25); min-width:240px;
+    animation:slideIn .25s ease;
+  }
+  .toast svg{width:16px; height:16px; flex-shrink:0; color:var(--green);}
+  .toast.warn svg{color:var(--peach);}
+  @keyframes slideIn{from{transform:translateX(30px); opacity:0;} to{transform:translateX(0); opacity:1;}}
+  .toast.hide{animation:slideOut .25s ease forwards;}
+  @keyframes slideOut{to{transform:translateX(30px); opacity:0;}}
+
+  .sidebar-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:35;}
+  .sidebar-overlay.show{display:block;}
+
+  .demo-flag{
+    display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--ink-faint);
+    background:var(--bg); border:1px solid var(--border); padding:4px 10px; border-radius:20px;
+  }
+  .demo-flag.live{color:var(--green-deep); background:#E6F9EE; border-color:#CDEFDC;}
+  .demo-flag.err{color:var(--pink-deep); background:#FFEEF3; border-color:#FBD9E4;}
+
+  /* Auth gate */
+  .auth-gate{
+    position:fixed; inset:0; z-index:500; background:var(--bg);
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px; text-align:center; padding:24px;
+  }
+  .auth-gate.hidden{display:none;}
+  .auth-card{
+    background:var(--card); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow);
+    padding:36px 32px; max-width:360px; width:100%;
+  }
+  .auth-card .brand-mark{margin:0 auto 16px; width:46px; height:46px; font-size:20px;}
+  .auth-card h2{font-size:19px; font-weight:800; margin-bottom:8px;}
+  .auth-card p{font-size:13px; color:var(--ink-soft); margin-bottom:20px; line-height:1.5;}
+  .passcode-form{display:flex; flex-direction:column; gap:10px;}
+  .passcode-form input{
+    font-family:inherit; font-size:15px; padding:12px 14px; border-radius:12px;
+    border:1.5px solid var(--border); outline:none; text-align:center; letter-spacing:1px;
+  }
+  .passcode-form input:focus{border-color:var(--purple);}
+  .passcode-form button{
+    font-family:inherit; font-weight:700; font-size:14px; color:#fff; border:none;
+    background:linear-gradient(135deg, var(--purple), var(--purple-deep));
+    padding:12px 14px; border-radius:12px;
+  }
+  .passcode-form button:disabled{opacity:.6;}
+  .auth-error{margin-top:16px; font-size:12.5px; color:var(--pink-deep); font-weight:600;}
+  .app.hidden{display:none;}
+
+  @media (max-width: 1100px){
+    .grid-main{grid-template-columns:1fr;}
+    .bottom-grid{grid-template-columns:1fr;}
+    .analytics-grid{grid-template-columns:1fr;}
+    .summary-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width: 720px){
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);}
+    .main{margin-left:0; padding:18px 16px 50px;}
+    .menu-toggle{display:flex;}
+    .summary-grid{grid-template-columns:repeat(2,1fr);}
+    .topbar-right{gap:12px;}
+    .qa-grid{grid-template-columns:1fr 1fr;}
+    .kpi-row{grid-template-columns:1fr 1fr;}
+    .settings-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="brand-mark" style="display:flex;align-items:center;justify-content:center;">✦</div>
+    <h2>Trisha's Inbox</h2>
+    <p>Enter your dashboard passcode to view your live inbox data. This is the same passcode you set as a Script Property in Apps Script — it never leaves your browser except to your own backend.</p>
+    <form class="passcode-form" id="passcodeForm">
+      <input type="password" id="passcodeInput" placeholder="Passcode" autocomplete="off" required />
+      <button type="submit" id="passcodeSubmit">Unlock dashboard</button>
+    </form>
+    <div class="auth-error" id="authError" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="app hidden" id="appRoot">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">✦</div>
+      <div class="brand-text">
+        <h1>Trisha's Inbox</h1>
+        <p>AI-Powered Executive Support</p>
+      </div>
+    </div>
+
+    <nav class="nav-group" id="navGroup">
+      <!-- injected by JS -->
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">TE</div>
+      <div class="who">
+        <p>Trisha Mae Edos</p>
+        <span>Executive Assistant</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="greeting-row">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+        </button>
+        <div class="greeting">
+          <h2 id="greetingText">Good afternoon, Trisha!</h2>
+          <p>Your AI-powered inbox is working for you. Here's what's happening today.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-meta">
+          <div class="date" id="dateText">—</div>
+          <div class="time" id="timeText">—</div>
+        </div>
+        <div class="weather">
+          <span>☀️</span>
+          <div>
+            <div class="temp">32°C</div>
+            <div>Santo Tomas, Pampanga</div>
+          </div>
+        </div>
+        <span class="demo-flag" id="connFlag" title="Connection status">● Connecting…</span>
+      </div>
+    </div>
+
+    <div id="pageContent"></div>
+
+  </main>
+</div>
+
+<div class="overlay" id="modalOverlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* =========================================================================
+   LIVE CONFIG
+   APPS_SCRIPT_URL is the public address of your Apps Script Web App. It is
+   safe to publish because the script itself refuses to return anything
+   unless the correct passcode is sent with the request — see Code.gs.
+   Fill this in after finishing the setup steps — see the instructions the
+   assistant gave you alongside this file.
+   ========================================================================= */
+const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+/* =========================================================================
+   DashboardAPI — the only place in this file that talks to the network.
+   It never sends or stores Gmail credentials or API keys from any outside
+   service — only the passcode you chose yourself, which Code.gs checks
+   against a Script Property you set inside the Apps Script editor (never
+   committed to this file or to GitHub). The backend only ever returns the
+   sanitized metadata shape documented in Code.gs — never sender, subject,
+   or email body.
+   ========================================================================= */
+const DashboardAPI = {
+  async _call(passcode, action) {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      // text/plain keeps this a browser "simple request" so it isn't
+      // preflighted — Apps Script Web Apps can't reliably answer CORS
+      // preflight (OPTIONS) requests. The body is still parsed as JSON
+      // on the server.
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ passcode, action }),
+    });
+    if (!res.ok) throw new Error('Network error contacting the automation backend.');
+    const data = await res.json();
+    if (data.error) throw new Error(data.message || data.error);
+    return data;
+  },
+  getData(passcode) { return this._call(passcode, 'getData'); },
+  runNow(passcode) { return this._call(passcode, 'runNow'); },
+};
+
+/* ---------- auth state (in-memory only — never persisted to disk, never
+   written to localStorage/sessionStorage; re-entering the passcode is
+   required on every page load) ---------- */
+let authPasscode = null;
+
+const LABEL_COLORS = {
+  'Accounting':      {bg:'#E9F1FF', fg:'#2F6FE0'},
+  'Follow-Up':       {bg:'#E7FAF0', fg:'#20A263'},
+  'Meetings':        {bg:'#EFECFE', fg:'#6A5CE0'},
+  'Pending Reply':   {bg:'#FFEDF2', fg:'#E14C7C'},
+  'Personal':        {bg:'#FFF3E4', fg:'#D98A2B'},
+  'Spam/Newsletter': {bg:'#F1EFEA', fg:'#8A8474'},
+  'Team':            {bg:'#E9FBFA', fg:'#1FA79B'},
+  'Travels':         {bg:'#FEF1FF', fg:'#B24FCB'},
+  'Urgent':          {bg:'#FFE9EC', fg:'#E0335C'},
+  'VIP Clients':     {bg:'#FFF6DE', fg:'#B5891A'},
+};
+
+const NAV_ITEMS = [
+  {id:'dashboard', label:'Dashboard', icon:'grid'},
+  {id:'inbox', label:'Inbox', icon:'mail', badge:3},
+  {id:'pending', label:'Pending Replies', icon:'reply', badge:3},
+  {id:'followups', label:'Follow-Ups', icon:'clock', badge:2},
+  {id:'meetings', label:'Meetings', icon:'calendar', badge:2},
+  {id:'drafts', label:'Drafts', icon:'edit', badge:1},
+  {id:'divider'},
+  {id:'vip', label:'VIP Clients', icon:'star'},
+  {id:'analytics', label:'Analytics', icon:'chart'},
+  {id:'log', label:'Email Log', icon:'list'},
+  {id:'settings', label:'Settings', icon:'gear'},
+];
+
+const ICONS = {
+  grid:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+  mail:'<path d="M4 5h16v14H4z"/><path d="M4 6l8 7 8-7"/>',
+  reply:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v2"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  star:'<path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3L3 9.5l6.4-.6Z"/>',
+  chart:'<path d="M4 20V10M12 20V4M20 20v-7"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a7.97 7.97 0 0 0 .1-1 8 8 0 0 0-.1-1l2.1-1.6-2-3.4-2.5 1a8 8 0 0 0-1.7-1L15 4h-6l-.3 2.6a8 8 0 0 0-1.7 1l-2.5-1-2 3.4L4.6 12a8 8 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1a8 8 0 0 0 1.7 1L9 21.6h6l.3-2.6a8 8 0 0 0 1.7-1l2.5 1 2-3.4Z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  filter:'<path d="M4 5h16M7 12h10M10 19h4"/>',
+  play:'<path d="M6 4l14 8-14 8Z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  compose:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  follow:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>',
+  eye:'<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/>',
+  gmail:'<path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/>',
+  bolt:'<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  clip:'<path d="M21 12.5V7a2 2 0 0 0-2-2h-4l-2-2H9L7 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6"/><path d="M16 16l3 3 5-5" stroke="none"/>',
+  paper:'<path d="M21.4 11.6 12.4 2.6a2 2 0 0 0-2.8 0l-7 7a2 2 0 0 0 0 2.8l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8Z"/><circle cx="7.5" cy="7.5" r="1"/>',
+};
+function icon(name, cls){ return `<svg class="${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`; }
+
+// ---- Live data, populated by DashboardAPI.getData() after sign-in ----
+// Shape per item: {timestamp, messageId, threadId, labels, score, level,
+// requiresReply, hasAttachment, attachmentCount, processed, classification, reason}
+// Sender name/email, subject, and body/preview are never sent by the backend
+// and never appear in this array.
+let EMAILS = [];
+
+let MEETINGS = [];      // sanitized rows carrying the "Meetings" label
+let ACTIVITY = [];      // sanitized recent processing events
+let DRAFTS = [];        // reserved: empty until your automation tracks drafts
+let dailyTrend = [];    // [{date:'Mon', count:N}, ...] last 7 days, from the backend
+
+let CHECKLIST = [
+  {text:'Reply to client about meeting', done:false},
+  {text:'Confirm invoice payment', done:false},
+  {text:'Follow up on project update', done:false},
+  {text:'Prepare for tomorrow\'s call', done:false},
+  {text:'Review pending replies', done:false},
+];
+
+// Manual reference only — this is NOT fetched live from Apps Script.
+// Edit these values by hand to match the Script Properties / constants
+// in your own automation, so Settings shows what you've actually configured.
+const CONFIG = [
+  {name:'TEST_MODE', val:'false', desc:'Automation runs against live inbox rules'},
+  {name:'ENABLE_DRAFTS', val:'true', desc:'AI-drafted replies are created for eligible emails'},
+  {name:'ENABLE_DAILY_DIGEST', val:'false', desc:'No end-of-day summary email is sent'},
+  {name:'ENABLE_AUTO_MARK_READ', val:'false', desc:'Processed emails stay unread until you open them'},
+  {name:'ENABLE_AUTO_ARCHIVE', val:'true', desc:'Low-priority newsletters are archived automatically'},
+  {name:'MAX_DRAFTS_PER_RUN', val:'10', desc:'Upper limit on drafts created per automation run'},
+  {name:'PROCESSING_WINDOW_DAYS', val:'2', desc:'Looks back 2 days when scanning for new mail'},
+  {name:'PROCESSING_BATCH_SIZE', val:'5', desc:'Emails handled per processing batch'},
+  {name:'FOLLOW_UP_HOURS', val:'24', desc:'Standard follow-up reminder window'},
+  {name:'FOLLOW_UP_HIGH_PRIORITY_HOURS', val:'48', desc:'Extended window for high-priority threads'},
+  {name:'PRIORITY_STAR_THRESHOLD', val:'70', desc:'Score above which an email is auto-starred'},
+];
+
+let state = {
+  page:'dashboard',
+  tab:'all',
+  search:'',
+  automationRunning:false,
+  emailsToday:0,
+  emailsCap:50,
+  lastSync:null,
+  automationOnline:false,
+  stats:{processed:0, urgent:0, pendingReplies:0, followUps:0, meetings:0},
+};
+
+/* ---------- helpers ---------- */
+function fmtTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+function fmtDateTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('en-US',{month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+}
+function scoreClass(score){ return score>=70?'score-hi':score>=45?'score-mid':'score-lo'; }
+function labelChip(l){
+  const c = LABEL_COLORS[l] || {bg:'#EEE', fg:'#555'};
+  return `<span class="label-chip" style="background:${c.bg}; color:${c.fg}">${l}</span>`;
+}
+function toast(msg, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type==='warn'?' warn':'');
+  el.innerHTML = `${icon(type==='warn'?'info':'check')}<span>${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.classList.add('hide'); setTimeout(()=>el.remove(),260); }, 3200);
+}
+
+/* ---------- sidebar ---------- */
+function renderNav(){
+  const wrap = document.getElementById('navGroup');
+  wrap.innerHTML = NAV_ITEMS.map(item=>{
+    if(item.id==='divider') return '<div class="nav-divider"></div>';
+    const active = state.page===item.id ? 'active':'';
+    const badge = item.badge ? `<span class="nav-badge">${item.badge}</span>` : '';
+    return `<button class="nav-item ${active}" data-page="${item.id}">
+      <span class="left">${icon(item.icon)}<span>${item.label}</span></span>${badge}
+    </button>`;
+  }).join('');
+  wrap.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.page = btn.dataset.page;
+      state.tab = 'all';
+      state.search = '';
+      closeMobileSidebar();
+      renderNav();
+      renderPage();
+    });
+  });
+}
+
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+/* ---------- summary cards ---------- */
+function summaryCards(){
+  const s = state.stats || {};
+  const cards = [
+    {label:'Processed Today', value:s.processed||0, icon:'mail', cls:'s-purple'},
+    {label:'Urgent', value:s.urgent||0, icon:'bolt', cls:'s-pink'},
+    {label:'Pending Replies', value:s.pendingReplies||0, icon:'reply', cls:'s-peach'},
+    {label:'Follow-Ups', value:s.followUps||0, icon:'follow', cls:'s-green'},
+    {label:'Meetings', value:s.meetings||0, icon:'calendar', cls:'s-blue'},
+  ];
+  return `<div class="summary-grid">${cards.map(c=>`
+    <div class="summary-card ${c.cls}">
+      <div class="icon">${icon(c.icon)}</div>
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+    </div>`).join('')}</div>`;
+}
+
+/* ---------- priority inbox table ---------- */
+const TAB_DEFS = [
+  {id:'all', label:'All'},
+  {id:'Urgent', label:'Urgent'},
+  {id:'Pending Reply', label:'Pending Reply'},
+  {id:'Follow-Up', label:'Follow-Up'},
+  {id:'Meetings', label:'Meetings'},
+];
+
+function filteredEmails(list, tab, search){
+  let out = list;
+  if(tab && tab!=='all') out = out.filter(e=>e.labels.includes(tab));
+  if(search){
+    const s = search.toLowerCase();
+    out = out.filter(e =>
+      e.classification.toLowerCase().includes(s) ||
+      e.messageId.toLowerCase().includes(s) ||
+      e.labels.some(l=>l.toLowerCase().includes(s))
+    );
+  }
+  return out.slice().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+}
+
+function inboxCard(opts){
+  opts = opts || {};
+  const title = opts.title || 'Priority Inbox';
+  const subtitle = opts.subtitle || 'Your most important emails, sorted by priority.';
+  const showTabs = opts.showTabs !== false;
+  const baseList = opts.list || EMAILS;
+  const list = filteredEmails(baseList, showTabs ? state.tab : 'all', state.search);
+
+  return `
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h3>${icon('mail')} ${title}</h3>
+        <p>${subtitle}</p>
+      </div>
+    </div>
+    ${showTabs ? `<div class="tabs" id="tabRow">
+      ${TAB_DEFS.map(t=>`<button class="tab ${state.tab===t.id?'active':''}" data-tab="${t.id}">${t.label}${t.id==='all'?` (${baseList.length})`:''}</button>`).join('')}
+    </div>` : ''}
+    <div class="toolbar">
+      <div class="search-box">
+        ${icon('search')}
+        <input id="searchInput" type="text" placeholder="Search emails..." value="${state.search}">
+      </div>
+      <button class="filter-btn" id="filterBtn" title="Advanced filters">${icon('filter')}</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Priority</th><th>Message</th><th>Classification</th><th>Labels</th><th>Received</th><th>Action</th>
+        </tr></thead>
+        <tbody id="emailTbody">
+          ${list.length ? list.map(e=>`
+          <tr>
+            <td><span class="score-pill ${scoreClass(e.score)}">${e.score}</span></td>
+            <td class="from-cell" title="Message and thread IDs are shortened for privacy">${e.messageId}</td>
+            <td class="subj-cell">
+              <div class="subj">${e.classification || '—'}</div>
+              <div class="preview">${e.requiresReply?'Needs reply':''}${e.requiresReply && e.hasAttachment?' · ':''}${e.hasAttachment?`${e.attachmentCount} attachment${e.attachmentCount===1?'':'s'}`:''}</div>
+            </td>
+            <td>${e.labels.map(labelChip).join('')}</td>
+            <td>${fmtTime(e.timestamp)}</td>
+            <td>
+              <div class="row-actions">
+                <button class="view-btn" data-view="${e.id}">View</button>
+              </div>
+            </td>
+          </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state">${icon('mail')}<p>No emails match this view.</p></div></td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function bindInboxCard(){
+  const tabRow = document.getElementById('tabRow');
+  if(tabRow) tabRow.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{ state.tab = t.dataset.tab; renderPage(); });
+  });
+  const search = document.getElementById('searchInput');
+  if(search){
+    search.addEventListener('input', ()=>{ state.search = search.value; });
+    search.addEventListener('keyup', (ev)=>{ state.search = search.value; refreshTableOnly(); });
+  }
+  const filterBtn = document.getElementById('filterBtn');
+  if(filterBtn) filterBtn.addEventListener('click', ()=> toast('Advanced filtering isn\'t wired up yet — use the search box or tabs above.', 'warn'));
+  document.querySelectorAll('[data-view]').forEach(b=> b.addEventListener('click', ()=> openEmailModal(parseInt(b.dataset.view))));
+}
+
+// lighter re-render for typing in search (avoids losing focus)
+function refreshTableOnly(){
+  const tbody = document.getElementById('emailTbody');
+  if(!tbody) return;
+  const list = filteredEmails(EMAILS, state.tab, state.search);
+  tbody.innerHTML = list.length ? list.map(e=>`
+    <tr>
+      <td><span class="score-pill ${scoreClass(e.score)}">${e.score}</span></td>
+      <td class="from-cell">${e.messageId}</td>
+      <td class="subj-cell"><div class="subj">${e.classification || '—'}</div><div class="preview">${e.requiresReply?'Needs reply':''}</div></td>
+      <td>${e.labels.map(labelChip).join('')}</td>
+      <td>${fmtTime(e.timestamp)}</td>
+      <td><div class="row-actions"><button class="view-btn" data-view="${e.id}">View</button></div></td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state">${icon('mail')}<p>No emails match this view.</p></div></td></tr>`;
+  tbody.querySelectorAll('[data-view]').forEach(b=> b.addEventListener('click', ()=> openEmailModal(parseInt(b.dataset.view))));
+}
+
+/* ---------- automation panel ---------- */
+function automationCard(){
+  const pct = Math.round((state.emailsToday/state.emailsCap)*100);
+  const online = state.automationOnline;
+  return `
+  <div class="card">
+    <div class="status-row">
+      <span class="dot ${online?'':'off'}"></span>
+      <h3 style="font-size:14.5px;">Automation ${online?'Online':'Offline'}</h3>
+      <span class="live-badge" ${online?'':'style="background:#F1EFEA;color:#8A8474;"'}>${state.automationRunning?'Running':(online?'Live':'No data yet')}</span>
+    </div>
+    <div class="kv"><span>Last sync</span><span id="lastRunVal">${state.lastSync ? fmtDateTime(state.lastSync) : '—'}</span></div>
+    <div class="kv"><span>Emails processed today</span><span>${state.emailsToday}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%"></div></div>
+    <button class="run-btn" id="runNowBtn" ${state.automationRunning?'disabled':''}>
+      ${state.automationRunning? '<span class="spin">⟳</span> Running…' : icon('play')+' Run Now'}
+    </button>
+  </div>`;
+}
+
+function bindAutomation(){
+  const btn = document.getElementById('runNowBtn');
+  if(!btn) return;
+  btn.addEventListener('click', runAutomationNow);
+}
+
+async function runAutomationNow(){
+  if(state.automationRunning) return;
+  if(!authPasscode){ toast('Please unlock the dashboard again to run the automation.', 'warn'); return; }
+  state.automationRunning = true;
+  renderPage();
+  toast('Automation run started — contacting your Apps Script backend…');
+  try {
+    const data = await DashboardAPI.runNow(authPasscode);
+    applyDashboardData(data);
+    toast('Run complete — dashboard refreshed with your live inbox data.');
+  } catch (err) {
+    toast('Run failed: ' + err.message, 'warn');
+  } finally {
+    state.automationRunning = false;
+    renderPage();
+  }
+}
+
+/* ---------- quick actions ---------- */
+function quickActionsCard(){
+  return `
+  <div class="card">
+    <div class="card-head"><h3>${icon('bolt')} Quick Actions</h3></div>
+    <div class="qa-grid">
+      <button class="qa-btn" data-qa="drafts">${icon('edit')} View Drafts</button>
+      <button class="qa-btn" data-qa="refresh">${icon('follow')} Refresh Data</button>
+      <a class="qa-btn" href="https://mail.google.com" target="_blank" rel="noopener">${icon('gmail')} Open Gmail</a>
+      <button class="qa-btn" data-qa="log">${icon('list')} View Email Log</button>
+    </div>
+  </div>`;
+}
+function bindQuickActions(){
+  document.querySelectorAll('[data-qa]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const a = b.dataset.qa;
+      if(a==='drafts'){ state.page='drafts'; renderNav(); renderPage(); }
+      if(a==='log'){ state.page='log'; renderNav(); renderPage(); }
+      if(a==='refresh') loadDashboardData();
+    });
+  });
+}
+
+/* ---------- meetings / activity / drafts / checklist ---------- */
+function meetingsCard(){
+  const items = MEETINGS.slice(0,5);
+  return `<div class="card">
+    <div class="card-head"><h3>${icon('calendar')} Upcoming Meetings</h3><button class="link" data-goto="meetings">View all →</button></div>
+    ${items.length ? items.map(m=>`
+      <div class="list-item">
+        <div class="list-left"><span class="list-dot"></span>
+          <div class="list-text"><p>${m.classification || 'Meeting-related email'}</p><span>${fmtDateTime(m.timestamp)}</span></div>
+        </div>
+        <span class="pill-btn" style="cursor:default;">${m.level}</span>
+      </div>`).join('') : `<div class="empty-state" style="padding:24px 10px;">${icon('calendar')}<p>No meeting-labeled emails yet.</p></div>`}
+  </div>`;
+}
+function activityCard(){
+  const items = ACTIVITY.slice(0,5);
+  return `<div class="card">
+    <div class="card-head"><h3>${icon('clock')} Activity Log</h3><button class="link" data-goto="log">View all →</button></div>
+    ${items.length ? items.map(a=>`
+      <div class="list-item">
+        <div class="list-left"><span class="activity-time">${fmtTime(a.timestamp)}</span><span class="activity-text">${a.classification || 'Processed'} · ${a.level} priority</span></div>
+      </div>`).join('') : `<div class="empty-state" style="padding:24px 10px;">${icon('clock')}<p>No activity recorded yet.</p></div>`}
+  </div>`;
+}
+function draftsCard(){
+  return `<div class="card">
+    <div class="card-head"><h3>${icon('edit')} Recent Drafts</h3><button class="link" data-goto="drafts">View all →</button></div>
+    ${DRAFTS.length ? DRAFTS.map(d=>`
+      <div class="list-item">
+        <div class="list-left">
+          <div class="draft-icon">${icon('paper')}</div>
+          <div class="list-text"><p>${d.classification || 'Draft'}</p><span>${fmtTime(d.timestamp)}</span></div>
+        </div>
+      </div>`).join('') : `<div class="empty-state" style="padding:24px 10px;">${icon('paper')}<p>Draft tracking isn't wired up in your automation yet.</p></div>`}
+  </div>`;
+}
+function checklistCard(){
+  return `<div class="card">
+    <div class="card-head"><h3>${icon('check')} Today's Focus</h3></div>
+    <div id="checklistWrap">
+      ${CHECKLIST.map((c,i)=>`
+        <div class="check-item ${c.done?'done':''}">
+          <span class="checkbox ${c.done?'done':''}" data-check="${i}">${icon('check')}</span>
+          <span>${c.text}</span>
+        </div>`).join('')}
+    </div>
+    <div class="focus-note">You got this! 💗</div>
+  </div>`;
+}
+function bindDashboardExtras(){
+  document.querySelectorAll('[data-check]').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const i = parseInt(c.dataset.check);
+      CHECKLIST[i].done = !CHECKLIST[i].done;
+      renderPage();
+      toast(CHECKLIST[i].done ? 'Marked as done.' : 'Marked as not done.');
+    });
+  });
+  document.querySelectorAll('[data-goto]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.page = b.dataset.goto; renderNav(); renderPage(); });
+  });
+}
+
+/* ---------- charts (bottom row) ---------- */
+let chartRefs = {};
+function destroyCharts(){ Object.values(chartRefs).forEach(c=>c && c.destroy()); chartRefs = {}; }
+
+function categoryCounts(){
+  const counts = {};
+  EMAILS.forEach(e=> e.labels.forEach(l=>{ counts[l] = (counts[l]||0)+1; }));
+  return counts;
+}
+function levelCounts(){
+  const c = {High:0, Medium:0, Low:0};
+  EMAILS.forEach(e=>{ if(c[e.level]!==undefined) c[e.level]++; });
+  return c;
+}
+
+function renderBottomCharts(){
+  const counts = categoryCounts();
+  const labels = Object.keys(counts);
+  const values = Object.values(counts);
+  const total = values.reduce((a,b)=>a+b,0);
+  const colors = labels.map(l => (LABEL_COLORS[l]||{fg:'#999'}).fg);
+
+  const catCtx = document.getElementById('catChart');
+  if(catCtx){
+    chartRefs.cat = new Chart(catCtx, {
+      type:'doughnut',
+      data:{ labels, datasets:[{data:values, backgroundColor:colors, borderWidth:0}] },
+      options:{ cutout:'68%', plugins:{legend:{display:false}} }
+    });
+  }
+  const legend = document.getElementById('catLegend');
+  if(legend){
+    legend.innerHTML = labels.map((l,i)=>`
+      <div class="legend-row">
+        <div class="legend-left"><span class="legend-dot" style="background:${colors[i]}"></span>${l}</div>
+        <span class="legend-pct">${values[i]} · ${Math.round(values[i]/total*100)}%</span>
+      </div>`).join('');
+  }
+
+  const lvl = levelCounts();
+  const prCtx = document.getElementById('priorityChart');
+  if(prCtx){
+    chartRefs.priority = new Chart(prCtx, {
+      type:'bar',
+      data:{
+        labels:['High','Medium','Low'],
+        datasets:[{ data:[lvl.High, lvl.Medium, lvl.Low], backgroundColor:['#E85D8A','#F2924B','#7C6FEE'], borderRadius:8, maxBarThickness:46 }]
+      },
+      options:{ plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, grid:{color:'#ECEAF6'} }, x:{ grid:{display:false} } } }
+    });
+  }
+}
+
+/* ---------- Analytics page ---------- */
+function analyticsPage(){
+  const counts = categoryCounts();
+  const lvl = levelCounts();
+  const totalThisWeek = dailyTrend.reduce((a,d)=>a+d.count,0);
+
+  return `
+  <div class="page-title"><h2>Analytics</h2><p>Live stats computed from your Email Log sheet.</p></div>
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="label">Total, last 7 days</div><div class="value">${totalThisWeek}</div></div>
+    <div class="kpi-card"><div class="label">Avg. priority score</div><div class="value">${EMAILS.length ? Math.round(EMAILS.reduce((a,e)=>a+e.score,0)/EMAILS.length) : 0}</div></div>
+    <div class="kpi-card"><div class="label">Reply required</div><div class="value">${EMAILS.filter(e=>e.requiresReply).length}</div></div>
+    <div class="kpi-card"><div class="label">Auto-archived</div><div class="value">${EMAILS.filter(e=>e.labels.includes('Spam/Newsletter')).length}</div></div>
+  </div>
+  <div class="analytics-grid">
+    <div class="card">
+      <div class="card-head"><h3>Emails Processed (7 days)</h3><p>From your Apps Script Email Log</p></div>
+      ${dailyTrend.length ? '<canvas id="trendChart" height="180"></canvas>' : `<div class="empty-state">${icon('chart')}<p>History will appear here once a few days of runs have logged.</p></div>`}
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Priority Distribution</h3><p>High / Medium / Low</p></div>
+      <canvas id="priorityChart2" height="180"></canvas>
+    </div>
+    <div class="card" style="grid-column:1/-1;">
+      <div class="card-head"><h3>Category Breakdown</h3><p>All Gmail labels applied, most recent log entries</p></div>
+      <canvas id="catChart2" height="140"></canvas>
+    </div>
+  </div>
+  `;
+}
+function bindAnalyticsPage(){
+  const trendCtx = document.getElementById('trendChart');
+  if(trendCtx && dailyTrend.length){
+    chartRefs.trend = new Chart(trendCtx, {
+      type:'line',
+      data:{ labels:dailyTrend.map(d=>d.date), datasets:[{ data:dailyTrend.map(d=>d.count), borderColor:'#7C6FEE', backgroundColor:'rgba(124,111,238,.12)', fill:true, tension:.4, pointBackgroundColor:'#7C6FEE' }] },
+      options:{ plugins:{legend:{display:false}}, scales:{ y:{grid:{color:'#ECEAF6'}}, x:{grid:{display:false}} } }
+    });
+  }
+  const lvl = levelCounts();
+  const prCtx2 = document.getElementById('priorityChart2');
+  if(prCtx2){
+    chartRefs.priority2 = new Chart(prCtx2, {
+      type:'doughnut',
+      data:{ labels:['High','Medium','Low'], datasets:[{ data:[lvl.High,lvl.Medium,lvl.Low], backgroundColor:['#E85D8A','#F2924B','#7C6FEE'], borderWidth:0 }] },
+      options:{ cutout:'62%' }
+    });
+  }
+  const counts = categoryCounts();
+  const catCtx2 = document.getElementById('catChart2');
+  if(catCtx2){
+    chartRefs.cat2 = new Chart(catCtx2, {
+      type:'bar',
+      data:{ labels:Object.keys(counts), datasets:[{ data:Object.values(counts), backgroundColor:Object.keys(counts).map(l=>(LABEL_COLORS[l]||{fg:'#999'}).fg), borderRadius:8, maxBarThickness:38 }] },
+      options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#ECEAF6'}}, x:{grid:{display:false}} } }
+    });
+  }
+}
+
+/* ---------- Email Log page ---------- */
+function logPage(){
+  return `
+  <div class="page-title"><h2>Email Log</h2><p>Live processing record from your automation. Sender, subject, and message content are never shown here.</p></div>
+  <div class="card">
+    <div class="toolbar" style="margin-bottom:12px;">
+      <div class="search-box">${icon('search')}<input id="searchInput" type="text" placeholder="Search log..." value="${state.search}"></div>
+    </div>
+    <div class="table-wrap">
+      <table style="min-width:1000px;">
+        <thead><tr>
+          <th>Timestamp</th><th>Message ID</th><th>Thread ID</th><th>Labels</th><th>Score</th><th>Level</th>
+          <th>Reply?</th><th>Attach.</th><th>Classification</th><th>Reason</th>
+        </tr></thead>
+        <tbody id="logTbody">
+          ${renderLogRows(EMAILS, state.search)}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+function renderLogRows(list, search){
+  let out = list;
+  if(search){
+    const s = search.toLowerCase();
+    out = out.filter(e => e.classification.toLowerCase().includes(s) || e.messageId.toLowerCase().includes(s) || e.labels.some(l=>l.toLowerCase().includes(s)));
+  }
+  out = out.slice().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+  if(!out.length) return `<tr><td colspan="10"><div class="empty-state">${icon('list')}<p>No log entries match your search.</p></div></td></tr>`;
+  return out.map(e=>`
+    <tr>
+      <td style="white-space:nowrap;">${fmtDateTime(e.timestamp)}</td>
+      <td style="font-size:11.5px;">${e.messageId}</td>
+      <td style="font-size:11.5px;">${e.threadId}</td>
+      <td>${e.labels.map(labelChip).join('')}</td>
+      <td><span class="score-pill ${scoreClass(e.score)}">${e.score}</span></td>
+      <td>${e.level}</td>
+      <td>${e.requiresReply?'Yes':'No'}</td>
+      <td>${e.hasAttachment? e.attachmentCount : '—'}</td>
+      <td>${e.classification}</td>
+      <td style="max-width:240px; color:var(--ink-soft); font-size:12px;">${e.reason}</td>
+    </tr>`).join('');
+}
+function bindLogPage(){
+  const search = document.getElementById('searchInput');
+  if(search){
+    search.addEventListener('keyup', ()=>{ state.search = search.value; document.getElementById('logTbody').innerHTML = renderLogRows(EMAILS, state.search); });
+  }
+}
+
+/* ---------- VIP Clients page ---------- */
+function vipPage(){
+  // No sender identity is ever shown, even here — this lists sanitized
+  // messages carrying the "VIP Clients" label, same shape as the inbox.
+  const vipEmails = EMAILS.filter(e=>e.labels.includes('VIP Clients'));
+  return `
+  <div class="page-title"><h2>VIP Clients</h2><p>Messages flagged VIP by your automation rules. Sender identity is never shown, even for VIP mail.</p></div>
+  ` + inboxCard({title:'VIP Clients', subtitle:`${vipEmails.length} VIP-labeled message${vipEmails.length===1?'':'s'}`, list: vipEmails, showTabs:false});
+}
+
+/* ---------- Settings page ---------- */
+function settingsPage(){
+  return `
+  <div class="page-title"><h2>Settings</h2><p>Manual reference for your automation's configuration — edit the CONFIG list in index.html to match your Apps Script Script Properties. This is not fetched live.</p></div>
+  <div class="card">
+    <div class="card-head"><h3>${icon('gear')} Automation Configuration</h3><p>A local reference, not a live read of your script</p></div>
+    <div class="settings-grid">
+      ${CONFIG.map(c=>`
+        <div class="setting-row">
+          <div>
+            <div class="name">${c.name}</div>
+            <div class="desc">${c.desc}</div>
+          </div>
+          ${c.val==='true'||c.val==='false'
+            ? `<div class="toggle ${c.val==='true'?'on':''}"></div>`
+            : `<div class="setting-val">${c.val}</div>`}
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---------- generic sub-page (inbox-style list pages) ---------- */
+function inboxStylePage(pageId){
+  const map = {
+    inbox: {title:'Inbox', subtitle:'All processed emails.', tab:'all'},
+    pending: {title:'Pending Replies', subtitle:'Emails waiting on your response.', tab:'Pending Reply'},
+    followups: {title:'Follow-Ups', subtitle:'Threads flagged for follow-up.', tab:'Follow-Up'},
+    meetings: {title:'Meetings', subtitle:'Emails related to meetings and scheduling.', tab:'Meetings'},
+  };
+  const cfg = map[pageId];
+  state.tab = state.tab === 'all' ? cfg.tab : state.tab;
+  return `<div class="page-title"><h2>${cfg.title}</h2><p>${cfg.subtitle}</p></div>` +
+    inboxCard({title:cfg.title, subtitle:cfg.subtitle, list: EMAILS, showTabs:true});
+}
+
+function draftsPage(){
+  return `
+  <div class="page-title"><h2>Drafts</h2><p>AI-drafted replies your automation has created. Draft subject/body are never shown here — only that a draft exists.</p></div>
+  <div class="card">
+    ${DRAFTS.length ? DRAFTS.map(d=>`
+      <div class="list-item">
+        <div class="list-left"><div class="draft-icon">${icon('paper')}</div>
+          <div class="list-text"><p>${d.classification || 'Draft'}</p><span>${fmtDateTime(d.timestamp)}</span></div>
+        </div>
+      </div>`).join('') : `<div class="empty-state">${icon('paper')}<p>Draft tracking isn't wired up in your automation yet. Once your Apps Script logs drafts to the sheet, add them to the backend's response and they'll show up here.</p></div>`}
+  </div>`;
+}
+
+/* ---------- modal ---------- */
+function openEmailModal(id){
+  const e = EMAILS.find(x=>x.id===id);
+  if(!e) return;
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h3>${e.classification || 'Processed email'}</h3>
+        <div class="from">Sender and subject are never shown, by design.</div>
+      </div>
+      <button class="modal-close" id="modalCloseBtn">${icon('x')}</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><span>Timestamp</span><span>${fmtDateTime(e.timestamp)}</span></div>
+      <div class="field"><span>Priority score</span><span>${e.score} (${e.level})</span></div>
+      <div class="field"><span>Labels</span><span>${e.labels.join(', ') || '—'}</span></div>
+      <div class="field"><span>Requires reply</span><span>${e.requiresReply?'Yes':'No'}</span></div>
+      <div class="field"><span>Attachments</span><span>${e.hasAttachment? e.attachmentCount : 'None'}</span></div>
+      <div class="field"><span>Classification</span><span>${e.classification}</span></div>
+      <div class="field"><span>Reason</span><span style="text-align:left; max-width:280px;">${e.reason || '—'}</span></div>
+      <div class="field"><span>Message ID</span><span style="font-size:11px;">${e.messageId}</span></div>
+      <div class="field"><span>Thread ID</span><span style="font-size:11px;">${e.threadId}</span></div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+document.getElementById('modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+/* ---------- page router ---------- */
+function renderPage(){
+  destroyCharts();
+  const el = document.getElementById('pageContent');
+
+  if(state.page==='dashboard'){
+    el.innerHTML = `
+      ${summaryCards()}
+      <div class="grid-main">
+        <div class="stack">
+          ${inboxCard({})}
+        </div>
+        <div class="stack">
+          ${automationCard()}
+          ${quickActionsCard()}
+          ${meetingsCard()}
+          ${activityCard()}
+        </div>
+      </div>
+      <div class="bottom-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="card">
+          <div class="card-head"><h3>Email Categories</h3><p>Breakdown of processed emails (today)</p></div>
+          <div class="donut-wrap"><canvas id="catChart" width="120" height="120"></canvas><div style="flex:1;"><div id="catLegend"></div></div></div>
+        </div>
+        ${draftsCard()}
+      </div>
+      <div class="bottom-grid" style="grid-template-columns:1fr;">
+        <div class="card">
+          <div class="card-head"><h3>Priority Distribution</h3><p>Today's processed emails by score</p></div>
+          <canvas id="priorityChart" height="90"></canvas>
+        </div>
+      </div>
+      <div class="bottom-grid" style="grid-template-columns:1fr;">${checklistCard()}</div>
+    `;
+    bindInboxCard(); bindAutomation(); bindQuickActions(); bindDashboardExtras();
+    renderBottomCharts();
+  }
+  else if(['inbox','pending','followups','meetings'].includes(state.page)){
+    el.innerHTML = inboxStylePage(state.page);
+    bindInboxCard();
+  }
+  else if(state.page==='drafts'){
+    el.innerHTML = draftsPage();
+  }
+  else if(state.page==='vip'){
+    el.innerHTML = vipPage();
+  }
+  else if(state.page==='analytics'){
+    el.innerHTML = analyticsPage();
+    bindAnalyticsPage();
+  }
+  else if(state.page==='log'){
+    el.innerHTML = logPage();
+    bindLogPage();
+  }
+  else if(state.page==='settings'){
+    el.innerHTML = settingsPage();
+  }
+}
+
+/* ---------- clock ---------- */
+function tickClock(){
+  const now = new Date();
+  document.getElementById('dateText').textContent = now.toLocaleDateString('en-US',{month:'short', day:'numeric', year:'numeric'});
+  document.getElementById('timeText').textContent = now.toLocaleTimeString('en-US',{hour:'numeric', minute:'2-digit'});
+  const h = now.getHours();
+  document.getElementById('greetingText').textContent = `Good ${h<12?'morning':h<18?'afternoon':'evening'}, Trisha!`;
+}
+
+/* ---------- mobile sidebar ---------- */
+document.getElementById('menuToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
+
+/* ---------- turning one backend response into what the UI renders ---------- */
+function applyDashboardData(data){
+  const withIds = (arr) => (arr||[]).map((item, i) => Object.assign({id: i}, item));
+  EMAILS = withIds(data.log && data.log.length ? data.log : data.recentActivity);
+  MEETINGS = withIds(data.meetings);
+  ACTIVITY = withIds(data.recentActivity);
+  DRAFTS = withIds(data.drafts);
+  dailyTrend = data.dailyTrend || [];
+  state.lastSync = data.lastSync || null;
+  state.automationOnline = !!data.automationOnline;
+  state.stats = data.stats || state.stats;
+  state.emailsToday = (data.stats && data.stats.processed) || 0;
+  state.emailsCap = Math.max(state.emailsToday, 50);
+}
+
+function setConnFlag(text, cls){
+  const el = document.getElementById('connFlag');
+  el.className = 'demo-flag' + (cls ? ' '+cls : '');
+  el.textContent = '● ' + text;
+}
+
+async function loadDashboardData(){
+  if(!authPasscode) return;
+  setConnFlag('Syncing…');
+  try {
+    const data = await DashboardAPI.getData(authPasscode);
+    applyDashboardData(data);
+    setConnFlag('Live · unlocked', 'live');
+    renderNav();
+    renderPage();
+  } catch (err) {
+    setConnFlag('Connection error', 'err');
+    toast('Could not load live data: ' + err.message, 'warn');
+    // If the passcode was rejected, send the person back to the gate
+    // rather than showing a dashboard with stale or empty data.
+    if(/unauthorized|passcode/i.test(err.message)){
+      authPasscode = null;
+      showAuthGate('Incorrect passcode, or your session was reset. Please try again.');
+    }
+  }
+}
+
+/* ---------- passcode gate ---------- */
+function showAuthGate(errorMsg){
+  document.getElementById('authGate').classList.remove('hidden');
+  document.getElementById('appRoot').classList.add('hidden');
+  const err = document.getElementById('authError');
+  if(errorMsg){ err.textContent = errorMsg; err.style.display = 'block'; }
+  else { err.style.display = 'none'; }
+  const input = document.getElementById('passcodeInput');
+  input.value = '';
+  input.focus();
+}
+function hideAuthGate(){
+  document.getElementById('authGate').classList.add('hidden');
+  document.getElementById('appRoot').classList.remove('hidden');
+}
+
+async function handlePasscodeSubmit(evt){
+  evt.preventDefault();
+  const input = document.getElementById('passcodeInput');
+  const btn = document.getElementById('passcodeSubmit');
+  const candidate = input.value.trim();
+  if(!candidate) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  try {
+    // getData both verifies the passcode and returns the first payload.
+    const data = await DashboardAPI.getData(candidate);
+    authPasscode = candidate;
+    applyDashboardData(data);
+    hideAuthGate();
+    setConnFlag('Live · unlocked', 'live');
+    renderNav();
+    renderPage();
+  } catch (err) {
+    showAuthGate(/unauthorized|passcode/i.test(err.message)
+      ? 'Incorrect passcode. Please try again.'
+      : 'Could not reach the backend: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Unlock dashboard';
+  }
+}
+
+function initAuthGate(){
+  const notConfigured = APPS_SCRIPT_URL.startsWith('PASTE_YOUR');
+  if(notConfigured){
+    showAuthGate('Setup isn\'t finished yet: add your APPS_SCRIPT_URL near the top of the <script> in index.html, then reload this page.');
+    setConnFlag('Not configured', 'err');
+    return;
+  }
+  document.getElementById('passcodeForm').addEventListener('submit', handlePasscodeSubmit);
+  setConnFlag('Locked');
+  showAuthGate();
+}
+
+/* ---------- init ---------- */
+renderNav();
+renderPage();
+tickClock();
+setInterval(tickClock, 30000);
+setInterval(()=>{ if(authPasscode) loadDashboardData(); }, 5*60*1000); // background refresh every 5 min
+window.addEventListener('load', initAuthGate);
+</script>
+</body>
+</html>
